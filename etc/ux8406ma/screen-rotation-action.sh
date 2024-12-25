@@ -25,8 +25,8 @@ handle_orientation() {
     case $orientation in
         "normal")
             DISPLAY=:0 xrandr --output eDP-1 --rotate normal --output eDP-2 --rotate normal --below eDP-1 &>/dev/null
-            touch_transform "$TOUCH1" "$SCREEN1" "$MATRIX_TOP_HALF"
-            touch_transform "$TOUCH2" "$SCREEN2" "$MATRIX_BOTTOM_HALF"
+            touch_transform "$TOUCH1" "$SCREEN1" "$MATRIX_NORMAL_TOP_HALF"
+            touch_transform "$TOUCH2" "$SCREEN2" "$MATRIX_NORMAL_BOTTOM_HALF"
             /etc/ux8406ma/log-manager.sh "Rotated to normal position"
             ;;
         "inverted")
@@ -37,8 +37,8 @@ handle_orientation() {
             ;;
         "left")
             DISPLAY=:0 xrandr --output eDP-1 --rotate left --output eDP-2 --rotate left --left-of eDP-1 &>/dev/null
-            touch_transform "$TOUCH1" "$SCREEN1" "$MATRIX_LEFT_HALF"
-            touch_transform "$TOUCH2" "$SCREEN2" "$MATRIX_RIGHT_HALF"
+            touch_transform "$TOUCH1" "$SCREEN1" "$MATRIX_LEFT_LEFT_HALF"
+            touch_transform "$TOUCH2" "$SCREEN2" "$MATRIX_LEFT_RIGHT_HALF"
             /etc/ux8406ma/log-manager.sh "Rotated to left position"
             ;;
         "right")
