@@ -31,8 +31,8 @@ handle_orientation() {
             ;;
         "inverted")
             DISPLAY=:0 xrandr --output eDP-1 --rotate inverted --output eDP-2 --rotate inverted --above eDP-1 &>/dev/null
-            touch_transform "$TOUCH1" "$SCREEN1" "$MATRIX_BOTTOM_HALF"
-            touch_transform "$TOUCH2" "$SCREEN2" "$MATRIX_TOP_HALF"
+            touch_transform "$TOUCH1" "$SCREEN1" "$MATRIX_INVERTED_BOTTOM_HALF"
+            touch_transform "$TOUCH2" "$SCREEN2" "$MATRIX_INVERTED_TOP_HALF"
             /etc/ux8406ma/log-manager.sh "Rotated to inverted position"
             ;;
         "left")
@@ -53,7 +53,6 @@ handle_orientation() {
             ;;
     esac
 
-    /etc/ux8406ma/log-manager.sh "$edp1_current_brightness $orientation"
     restore_brightness "eDP-1" "$edp1_current_brightness" "orientation" "eDP-1" "$orientation"
 }
 

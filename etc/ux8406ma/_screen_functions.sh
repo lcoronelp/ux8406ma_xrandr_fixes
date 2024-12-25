@@ -8,8 +8,13 @@ SCREEN_NONE="none"
 
 # Matrices de transformación para el área táctil
 MATRIX_FULL_SCREEN="1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0"
-MATRIX_TOP_HALF="1.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 1.0"  
+
+MATRIX_TOP_HALF="1.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 1.0"
+MATRIX_INVERTED_TOP_HALF="1.0 0.0 0.0 0.0 -0.5 1.0 0.0 0.0 1.0"
+
 MATRIX_BOTTOM_HALF="1.0 0.0 0.0 0.0 0.5 0.5 0.0 0.0 1.0"
+MATRIX_INVERTED_BOTTOM_HALF="1.0 0.0 0.0 0.0 -0.5 0.0 0.0 0.0 1.0"
+
 MATRIX_LEFT_HALF="0.5 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0" 
 MATRIX_RIGHT_HALF="0.5 0.0 0.5 0.0 1.0 0.0 0.0 0.0 1.0"
 
@@ -142,7 +147,7 @@ touch_transform() {
   local touch=$1
   local screen=$2
   local matrix=$3
-  
+
   DISPLAY=:0 xinput map-to-output "$touch" $screen
 
   if [ -n "$matrix" ]; then
