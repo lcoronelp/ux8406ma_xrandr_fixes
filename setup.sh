@@ -64,7 +64,7 @@ sudo mkdir -p /etc/ux8406ma
 sudo mkdir -p /etc/lightdm/lightdm.conf.d
 
 # Copy files
-cp etc/ux8406ma/* /etc/ux8406ma/
+sudo cp etc/ux8406ma/* /etc/ux8406ma/
 sudo cp etc/udev/rules.d/90-ux8406ma-keyboard.rules /etc/udev/rules.d/
 sudo cp etc/lightdm/lightdm.conf.d/50-ux8406ma-monitor-layout.conf /etc/lightdm/lightdm.conf.d/
 sudo cp etc/systemd/system/ux8406ma-screen-rotation-monitor.service /etc/systemd/system/
