@@ -10,6 +10,7 @@ touch_transform "$TOUCH1" "$SCREEN1" "$MATRIX_NORMAL_TOP_HALF"
 touch_transform "$TOUCH2" "$SCREEN2" "$MATRIX_NORMAL_BOTTOM_HALF"
 
 restore_brightness "eDP-1" "$edp1_current_brightness" "status" "on"
+restore_brightness "eDP-2" "$edp1_current_brightness" "status" "on"
 
 # Start the rotation monitor service
 systemctl start ux8406ma-screen-rotation-monitor
