@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LOG_FILE="/var/log/ux8406ma.log"
-MAX_LINES=50
+MAX_LINES=30
 
 # Limit log file to the last N lines
 limit_log_file() {

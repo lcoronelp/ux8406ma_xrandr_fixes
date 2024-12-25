@@ -12,7 +12,7 @@ get_orientation() {
     current_orientation=$(DISPLAY=:0 xrandr | grep "$screen connected" | grep -o "normal\|inverted\|left\|right" | head -n 1)
     
     if [[ -z "$current_orientation" ]]; then
-        echo "Error: Unable to get orientation for screen $screen"
+        /etc/ux8406ma/log-manager.sh "ERROR: Unable to get orientation for screen $screen"
         exit 1
     fi
     
@@ -26,7 +26,7 @@ get_current_brightness() {
     current_brightness=$(xrandr --verbose | grep -A 5 "^$screen" | grep "Brightness" | awk '{print $2}')
     
     if [[ -z "$current_brightness" ]]; then
-        /etc/ux8406ma/log-manager.sh "Error getting brightness for $screen"
+        /etc/ux8406ma/log-manager.sh "ERROR: Error getting brightness for $screen"
         exit 1
     fi
     
@@ -46,7 +46,7 @@ wait_for_edp2_status() {
             sleep 0.1  # Small delay to reduce CPU usage
         done
     else
-        echo "Invalid status parameter. Use 'on' or 'off'."
+        /etc/ux8406ma/log-manager.sh "ERROR: Invalid status parameter. Use 'on' or 'off'."
         exit 1
     fi
 }
@@ -83,10 +83,11 @@ restore_brightness() {
         # Wait for the orientation to be applied to the screen
         wait_for_screen_orientation "$status_or_screen" "$expected_orientation"
     else
-        echo "Invalid action parameter. Use 'status' or 'orientation'."
+        /etc/ux8406ma/log-manager.sh "ERROR: Invalid action parameter. Use 'status' or 'orientation'."
         exit 1
     fi
     
     # Restore brightness
     DISPLAY=:0 xrandr --output "$screen" --brightness "$current_brightness"
+    /etc/ux8406ma/log-manager.sh "Restored brightness $current_brightness"
 }

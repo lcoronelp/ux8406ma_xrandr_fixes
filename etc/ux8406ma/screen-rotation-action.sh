@@ -40,7 +40,8 @@ handle_orientation() {
             /etc/ux8406ma/log-manager.sh "Rotated to right position"
             ;;
         *)
-            echo "$(date '+%Y/%m/%d %H:%M:%S') Unknown orientation: $orientation"
+            
+            /etc/ux8406ma/log-manager.sh "ERROR: Unknown orientation: $orientation"
             ;;
     esac
 
