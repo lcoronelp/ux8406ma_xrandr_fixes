@@ -14,7 +14,7 @@ WINDEX = 4
 WLENGTH = 16
 
 # File to store the current level
-STATE_FILE = "~/.config/keyboard_brightness_level"
+STATE_FILE = os.path.expanduser("~/.config/keyboard_brightness_level")
 
 def get_next_level():
     try:
@@ -33,6 +33,7 @@ def get_next_level():
 
     # Save the new level back to the state file
     try:
+        os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
         with open(STATE_FILE, "w") as file:
             file.write(str(level))
     except Exception as e:
