@@ -10,6 +10,11 @@ exec > >(tee -i "$LOG_FILE") 2>&1
 SCRIPT_DIR=$(dirname "$0")
 USER_SHELL=$(basename "$SHELL")
 
+DEPENDENCIES=(
+    "iio-sensor-proxy"
+    "python3-usb"
+)
+
 # Ensure correct execution directory
 ensure_execution_directory() {
     if [ -d "$SCRIPT_DIR" ]; then
@@ -22,18 +27,23 @@ ensure_execution_directory() {
 
 # Validate critical dependencies
 validate_dependencies() {
-    echo "Validating critical dependencies..."
-    if ! dpkg -l | grep -q iio-sensor-proxy; then
-        echo "Installing iio-sensor-proxy dependency..."
-        sudo apt update && sudo apt install -y iio-sensor-proxy
+    for dependency in "${DEPENDENCIES[@]}"; do
+        echo "Validating dependency: $dependency..."
+        
+        # Check if the dependency is installed
+        if ! dpkg -l | grep -q "${dependency}"; then
+            echo "Installing $dependency..."
+            sudo apt update && sudo apt install -y "$dependency"
 
-        if ! dpkg -l | grep -q iio-sensor-proxy; then
-            echo "Error: iio-sensor-proxy package is not available."
-            exit 1
+            # Verify installation
+            if ! dpkg -l | grep -q "${dependency}"; then
+                echo "Error: $dependency package could not be installed."
+                exit 1
+            fi
+        else
+            echo "Dependency $dependency already exists."
         fi
-    else
-        echo "Dependency iio-sensor-proxy already exists."
-    fi
+    done
 }
 
 # Clean previous configurations

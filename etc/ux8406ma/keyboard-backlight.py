@@ -14,7 +14,7 @@ WINDEX = 4
 WLENGTH = 16
 
 # File to store the current level
-STATE_FILE = "/tmp/keyboard_brightness_level"
+STATE_FILE = "~/.config/keyboard_brightness_level"
 
 def get_next_level():
     try:
