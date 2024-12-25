@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Input variables
-DIRECTION=$1 # "up" to increase brightness, "down" to decrease brightness
+DIRECTION=$1 # "up" to increase brightness, "down" to decrease brightness, "reset" to set brightness to 1
 INCREMENT=0.10 # Brightness adjustment step
 MIN_BRIGHTNESS=0.20 # Minimum brightness allowed
 MAX_BRIGHTNESS=1.10 # Maximum brightness allowed
@@ -17,7 +17,7 @@ calculate_new_brightness() {
     elif [[ $DIRECTION == "down" ]]; then
         NEW_BRIGHTNESS=$(echo "$CURRENT_BRIGHTNESS - $INCREMENT" | bc)
     else
-        echo "Invalid direction: use 'up' or 'down'"
+        echo "Invalid direction: use 'up', 'down', or 'reset'"
         exit 1
     fi
 
@@ -31,16 +31,21 @@ calculate_new_brightness() {
     echo $NEW_BRIGHTNESS
 }
 
-# Get the current brightness of the primary monitor (eDP-1)
-PRIMARY_MONITOR="eDP-1"
-CURRENT_BRIGHTNESS=$(DISPLAY=:0 xrandr --verbose | grep -A 5 "^$PRIMARY_MONITOR" | grep "Brightness" | awk '{print $2}')
-if [[ -z $CURRENT_BRIGHTNESS ]]; then
-    echo "Failed to get brightness for $PRIMARY_MONITOR"
-    exit 1
-fi
+# Check if the direction is "reset"
+if [[ $DIRECTION == "reset" ]]; then
+    NEW_BRIGHTNESS=1.0
+else
+    # Get the current brightness of the primary monitor (eDP-1)
+    PRIMARY_MONITOR="eDP-1"
+    CURRENT_BRIGHTNESS=$(DISPLAY=:0 xrandr --verbose | grep -A 5 "^$PRIMARY_MONITOR" | grep "Brightness" | awk '{print $2}')
+    if [[ -z $CURRENT_BRIGHTNESS ]]; then
+        echo "Failed to get brightness for $PRIMARY_MONITOR"
+        exit 1
+    fi
 
-# Calculate the new brightness
-NEW_BRIGHTNESS=$(calculate_new_brightness $CURRENT_BRIGHTNESS)
+    # Calculate the new brightness
+    NEW_BRIGHTNESS=$(calculate_new_brightness $CURRENT_BRIGHTNESS)
+fi
 
 # Adjust brightness for each monitor in the list
 for MONITOR in "${MONITORS[@]}"; do
