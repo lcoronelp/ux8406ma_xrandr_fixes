@@ -1,5 +1,18 @@
 #!/bin/bash
 
+TOUCH1="ELAN9008:00 04F3:4259"
+TOUCH2="ELAN9009:00 04F3:42EC"
+SCREEN1="eDP-1"
+SCREEN2="eDP-2"
+SCREEN_NONE="none"
+
+# Matrices de transformación para el área táctil
+MATRIX_FULL_SCREEN="1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0"
+MATRIX_TOP_HALF="1.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 1.0"  
+MATRIX_BOTTOM_HALF="1.0 0.0 0.0 0.0 0.5 0.5 0.0 0.0 1.0"
+MATRIX_LEFT_HALF="0.5 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0" 
+MATRIX_RIGHT_HALF="0.5 0.0 0.5 0.0 1.0 0.0 0.0 0.0 1.0"
+
 # Check if eDP-2 is powered on using xrandr --listmonitors
 is_edp2_on() {
     DISPLAY=:0 xrandr --listmonitors | grep -q "eDP-2"
@@ -104,7 +117,6 @@ restore_brightness() {
         sleep 0.5  # Small delay before checking again
     done
 
-    # Log the successful restoration of brightness
     /etc/ux8406ma/log-manager.sh "Successfully restored brightness to $current_brightness"
 }
 
@@ -124,4 +136,18 @@ convert_orientation() {
             echo "$orientation"
             ;;
     esac
+}
+
+touch_transform() {
+  local touch=$1
+  local screen=$2
+  local matrix=$3
+  
+  DISPLAY=:0 xinput map-to-output "$touch" $screen
+
+  if [ -n "$matrix" ]; then
+    DISPLAY=:0 xinput set-prop "$touch" "Coordinate Transformation Matrix" $matrix
+  fi
+
+  /etc/ux8406ma/log-manager.sh "Applying matrix touch to screen $screen"
 }

@@ -6,6 +6,8 @@ edp1_current_brightness=$(get_current_brightness "eDP-1")
 
 # Turn on eDP-2 and position it below eDP-1
 DISPLAY=:0 xrandr --output eDP-2 --auto --below eDP-1
+touch_transform $TOUCH1 $SCREEN1 $MATRIX_TOP_HALF
+touch_transform $TOUCH2 $SCREEN2 $MATRIX_BOTTOM_HALF
 
 restore_brightness "eDP-1" "$edp1_current_brightness" "status" "on"
 
