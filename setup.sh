@@ -2,90 +2,175 @@
 
 set -e
 
-# Ensure correct execution directory
+# Log file for debugging
+LOG_FILE="/var/log/ux8406ma_install.log"
+exec > >(tee -i "$LOG_FILE") 2>&1
+
+# Global variables
 SCRIPT_DIR=$(dirname "$0")
-cd "$SCRIPT_DIR"
-
-# Install necessary dependencies (if applicable)
-echo "Installing dependencies..."
-sudo apt update && sudo apt install -y iio-sensor-proxy
-
-# Remove previous configurations and services
-echo "Checking for existing configurations and services..."
-
-# Old udev rules
-if [ -f "/etc/udev/rules.d/90-ux8406ma-keyboard.rules" ]; then
-    echo "Removing old udev rules..."
-    sudo rm /etc/udev/rules.d/90-ux8406ma-keyboard.rules
-    sudo udevadm control --reload-rules
-fi
-
-# Old screen rotation service
-if [ -f "/etc/systemd/system/ux8406ma-screen-rotation-monitor.service" ]; then
-    echo "Removing old screen rotation service..."
-    sudo systemctl stop ux8406ma-screen-rotation-monitor || true
-    sudo systemctl disable ux8406ma-screen-rotation-monitor || true
-    sudo rm /etc/systemd/system/ux8406ma-screen-rotation-monitor.service
-    sudo systemctl daemon-reload
-fi
-
-# Old lightdm configurations
-if [ -f "/etc/lightdm/lightdm.conf.d/50-ux8406ma-monitor-layout.conf" ]; then
-    echo "Removing old lightdm configuration..."
-    sudo rm /etc/lightdm/lightdm.conf.d/50-ux8406ma-monitor-layout.conf
-fi
-
-# Old files in /etc/ux8406ma
-if [ -d "/etc/ux8406ma" ]; then
-    echo "Removing old files in /etc/ux8406ma..."
-    sudo rm -rf /etc/ux8406ma
-fi
-
-# Detect shell and prompt the user
 USER_SHELL=$(basename "$SHELL")
-echo "Detected shell: $USER_SHELL"
-echo "Do you want to use this shell to configure xhost? (default: $USER_SHELL)"
-read -rp "Enter shell (bash, zsh, sh, etc.): " SELECTED_SHELL
-SELECTED_SHELL=${SELECTED_SHELL:-$USER_SHELL}
 
-# Configure xhost in shell initialization file
-echo "Configuring xhost for $SELECTED_SHELL..."
-SHELL_RC="$HOME/.${SELECTED_SHELL}rc"
-if ! grep -q "xhost +SI:localuser:root" "$SHELL_RC" 2>/dev/null; then
-    echo "xhost +SI:localuser:root" >> "$SHELL_RC"
-    echo "xhost permissions added to $SHELL_RC."
-else
-    echo "xhost permissions already exist in $SHELL_RC."
-fi
+# Ensure correct execution directory
+ensure_execution_directory() {
+    if [ -d "$SCRIPT_DIR" ]; then
+        cd "$SCRIPT_DIR"
+    else
+        echo "Error: Script directory does not exist."
+        exit 1
+    fi
+}
 
-# Create necessary directories
-echo "Creating directories..."
-sudo mkdir -p /etc/ux8406ma
-sudo mkdir -p /etc/lightdm/lightdm.conf.d
+# Validate critical dependencies
+validate_dependencies() {
+    echo "Validating critical dependencies..."
+    if ! dpkg -l | grep -q iio-sensor-proxy; then
+        echo "Installing iio-sensor-proxy dependency..."
+        sudo apt update && sudo apt install -y iio-sensor-proxy
 
-# Copy files
-sudo cp -r etc/ux8406ma/* /etc/ux8406ma/
-sudo cp etc/udev/rules.d/90-ux8406ma-keyboard.rules /etc/udev/rules.d/
-sudo cp etc/lightdm/lightdm.conf.d/50-ux8406ma-monitor-layout.conf /etc/lightdm/lightdm.conf.d/
-sudo cp etc/systemd/system/ux8406ma-screen-rotation-monitor.service /etc/systemd/system/
+        if ! dpkg -l | grep -q iio-sensor-proxy; then
+            echo "Error: iio-sensor-proxy package is not available."
+            exit 1
+        fi
+    else
+        echo "Dependency iio-sensor-proxy already exists."
+    fi
+}
 
-# Make scripts executable
-echo "Setting execution permissions..."
-sudo chmod +x /etc/ux8406ma/*.sh
+# Clean previous configurations
+clean_previous_configurations() {
+    echo "Removing old configurations..."
+    
+    # Remove old udev rules
+    if [ -f "/etc/udev/rules.d/90-ux8406ma-keyboard.rules" ]; then
+        echo "Removing old udev rules..."
+        sudo rm "/etc/udev/rules.d/90-ux8406ma-keyboard.rules"
+        sudo udevadm control --reload-rules
+    fi
 
-# Reload udev rules
-echo "Reloading udev rules..."
-sudo udevadm control --reload-rules
-sudo udevadm trigger
+    # Remove old screen rotation service
+    if [ -f "/etc/systemd/system/ux8406ma-screen-rotation-monitor.service" ]; then
+        echo "Removing old screen rotation service..."
+        sudo systemctl stop ux8406ma-screen-rotation-monitor || true
+        sudo systemctl disable ux8406ma-screen-rotation-monitor || true
+        sudo rm "/etc/systemd/system/ux8406ma-screen-rotation-monitor.service"
+        sudo systemctl daemon-reload
+    fi
 
-# Enable and start iio-sensor-proxy service
-echo "Attempting to activate iio-sensor-proxy..."
-sudo systemctl start iio-sensor-proxy || echo "Failed to start iio-sensor-proxy."
+    # Remove old LightDM configurations
+    if [ -f "/etc/lightdm/lightdm.conf.d/50-ux8406ma-monitor-layout.conf" ]; then
+        echo "Removing old LightDM configuration..."
+        sudo rm "/etc/lightdm/lightdm.conf.d/50-ux8406ma-monitor-layout.conf"
+    fi
 
-# Enable and activate new screen rotation service
-echo "Enabling and activating screen rotation service..."
-sudo systemctl daemon-reload
-#sudo systemctl enable ux8406ma-screen-rotation-monitor.service
-#sudo systemctl start ux8406ma-screen-rotation-monitor.service
+    # Remove old files in /etc/ux8406ma
+    if [ -d "/etc/ux8406ma" ]; then
+        echo "Removing old files in /etc/ux8406ma..."
+        sudo rm -rf "/etc/ux8406ma"
+    fi
+}
 
-echo "Installation completed."
+# Detect and configure the user's shell
+configure_shell() {
+    echo "Detecting and configuring shell..."
+
+    # Generate available shells from /etc/shells and remove duplicates
+    local available_shells
+    available_shells=($(grep -Eo '/[^ ]+$' /etc/shells | xargs -n1 basename | sort -u))
+
+    # Mark the current shell with (current)
+    for i in "${!available_shells[@]}"; do
+        if [ "${available_shells[$i]}" = "$USER_SHELL" ]; then
+            available_shells[$i]="${available_shells[$i]} (current)"
+        fi
+    done
+
+    PS3="Choose your shell option (or enter the number): "
+
+    # Use select to allow the user to choose a shell
+    echo "Please select the shell to configure xhost from the following options:"
+
+    while true; do
+        select OPTION in "${available_shells[@]}" "Other"; do
+            OPTION_CLEANED="${OPTION% (current)}"
+
+            if [[ " ${available_shells[@]} " =~ " ${OPTION_CLEANED} " ]]; then
+                SELECTED_SHELL="$OPTION_CLEANED"
+                break 2
+            elif [[ "$OPTION_CLEANED" == "Other" ]]; then
+                read -rp "Enter your shell (e.g., fish, ksh, etc.): " SELECTED_SHELL
+                break 2
+            else
+                echo "Invalid option, please choose a valid option:"
+                break
+            fi
+        done
+    done
+
+    SELECTED_SHELL=${SELECTED_SHELL:-$USER_SHELL}
+    
+    # Configure xhost in shell initialization file
+    echo ""
+    echo "Configuring xhost for $SELECTED_SHELL..."
+    local shell_rc="$HOME/.${SELECTED_SHELL}rc"
+
+    if ! grep -q "xhost +SI:localuser:root" "$shell_rc" 2>/dev/null; then
+        echo "Adding xhost permissions to $shell_rc..."
+        echo "xhost +SI:localuser:root" >> "$shell_rc"
+    else
+        echo "xhost permissions already exist in $shell_rc."
+    fi
+}
+
+# Install necessary files
+install_files() {
+    echo "Copying files and setting permissions..."
+    sudo mkdir -p /etc/ux8406ma
+    sudo mkdir -p /etc/lightdm/lightdm.conf.d
+    
+    if [ -d "etc/ux8406ma" ]; then
+        sudo cp -r etc/ux8406ma/* /etc/ux8406ma/
+    fi
+    if [ -f "etc/udev/rules.d/90-ux8406ma-keyboard.rules" ]; then
+        sudo cp etc/udev/rules.d/90-ux8406ma-keyboard.rules /etc/udev/rules.d/
+    fi
+
+    if [ -f "etc/lightdm/lightdm.conf.d/50-ux8406ma-monitor-layout.conf" ]; then
+        sudo cp etc/lightdm/lightdm.conf.d/50-ux8406ma-monitor-layout.conf /etc/lightdm/lightdm.conf.d/
+    fi
+
+    if [ -f "etc/systemd/system/ux8406ma-screen-rotation-monitor.service" ]; then
+        sudo cp etc/systemd/system/ux8406ma-screen-rotation-monitor.service /etc/systemd/system/
+    fi
+
+    sudo chmod +x /etc/ux8406ma/*.sh
+
+}
+
+# Reload services and apply changes
+reload_services() {
+    echo "Reloading services..."
+    sudo udevadm control --reload-rules
+    sudo udevadm trigger
+    sudo systemctl start iio-sensor-proxy || echo "Failed to start iio-sensor-proxy."
+    sudo systemctl daemon-reload
+    echo "Services reloaded successfully."
+}
+
+# Main execution flow
+main() {
+    ensure_execution_directory
+    echo ""
+    validate_dependencies
+    echo ""
+    clean_previous_configurations
+    echo ""
+    configure_shell
+    echo ""
+    install_files
+    echo ""
+    reload_services
+    echo ""
+    echo "Installation completed successfully."
+}
+
+main
