@@ -1,0 +1,1 @@
+# ux8406ma_xrandr_fixes
