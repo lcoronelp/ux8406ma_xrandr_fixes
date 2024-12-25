@@ -2,7 +2,7 @@
 
 # Check if eDP-2 is powered on using xrandr --listmonitors
 is_edp2_on() {
-    xrandr --listmonitors | grep -q "eDP-2"
+    DISPLAY=:0 xrandr --listmonitors | grep -q "eDP-2"
 }
 
 # Get the current orientation of a screen
@@ -23,7 +23,7 @@ get_orientation() {
 get_current_brightness() {
     local screen=$1
     local current_brightness
-    current_brightness=$(xrandr --verbose | grep -A 5 "^$screen" | grep "Brightness" | awk '{print $2}')
+    current_brightness=$(DISPLAY=:0 xrandr --verbose | grep -A 5 "^$screen" | grep "Brightness" | awk '{print $2}')
     
     if [[ -z "$current_brightness" ]]; then
         /etc/ux8406ma/log-manager.sh "ERROR: Error getting brightness for $screen"
