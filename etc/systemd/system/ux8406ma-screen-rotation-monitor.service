@@ -1,0 +1,11 @@
+[Unit]
+Description=Rotate Screen Based on Orientation
+After=multi-user.target
+
+[Service]
+ExecStart=/etc/ux8406ma/screen-rotation-action.sh
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
