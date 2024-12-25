@@ -76,18 +76,33 @@ restore_brightness() {
     local status_or_screen=$4   # The status or the screen (status "on"/"off" or screen name)
     local expected_orientation=$5  # Expected orientation if action is "orientation"
     
+    # Wait for the desired status or rotation
     if [[ "$action" == "status" ]]; then
-        # Wait for the desired status (connection or disconnection)
         wait_for_edp2_status "$status_or_screen"
     elif [[ "$action" == "orientation" ]]; then
-        # Wait for the orientation to be applied to the screen
         wait_for_screen_orientation "$status_or_screen" "$expected_orientation"
     else
         /etc/ux8406ma/log-manager.sh "ERROR: Invalid action parameter. Use 'status' or 'orientation'."
         exit 1
     fi
-    
+
     # Restore brightness
     DISPLAY=:0 xrandr --output "$screen" --brightness "$current_brightness"
-    /etc/ux8406ma/log-manager.sh "Restored brightness $current_brightness"
+    
+    # Log the first brightness restoration attempt
+    /etc/ux8406ma/log-manager.sh "Attempting to restore brightness $current_brightness"
+
+    # Verify and retry until the brightness is correct
+    local actual_brightness
+    do {
+        actual_brightness=$(get_current_brightness "$screen")
+        
+        if [[ "$actual_brightness" != "$current_brightness" ]]; then
+            /etc/ux8406ma/log-manager.sh "Brightness mismatch: actual ($actual_brightness) does not match expected ($current_brightness). Retrying..."
+            DISPLAY=:0 xrandr --output "$screen" --brightness "$current_brightness"  # Retry restoring brightness
+        fi
+    } while [[ "$actual_brightness" != "$current_brightness" ]]  # Continue until they match
+
+    # Log the successful restoration of brightness
+    /etc/ux8406ma/log-manager.sh "Successfully restored brightness to $current_brightness"
 }
