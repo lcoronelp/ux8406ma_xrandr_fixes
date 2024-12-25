@@ -92,16 +92,17 @@ restore_brightness() {
     # Log the first brightness restoration attempt
     /etc/ux8406ma/log-manager.sh "Attempting to restore brightness $current_brightness"
 
-    # Verify and retry until the brightness is correct
-    local actual_brightness
-    do {
+    while true; do
         actual_brightness=$(get_current_brightness "$screen")
         
         if [[ "$actual_brightness" != "$current_brightness" ]]; then
             /etc/ux8406ma/log-manager.sh "Brightness mismatch: actual ($actual_brightness) does not match expected ($current_brightness). Retrying..."
             DISPLAY=:0 xrandr --output "$screen" --brightness "$current_brightness"  # Retry restoring brightness
+        else
+            break  # Exit the loop once the brightness matches
         fi
-    } while [[ "$actual_brightness" != "$current_brightness" ]]  # Continue until they match
+        sleep 0.5  # Small delay before checking again
+    done
 
     # Log the successful restoration of brightness
     /etc/ux8406ma/log-manager.sh "Successfully restored brightness to $current_brightness"
