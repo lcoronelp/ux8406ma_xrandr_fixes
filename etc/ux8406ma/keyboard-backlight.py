@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# Based on https://github.com/alesya-h/zenbook-duo-2024-ux8406ma-linux
+
 import sys
 import usb.core
 import usb.util
@@ -23,7 +25,7 @@ def get_next_level():
             with open(STATE_FILE, "r") as file:
                 level = int(file.read().strip())
         else:
-            level = -1  # Default to -1 so the first increment is 0
+            level = 0  # Default to 0 so the first increment is 1
     except Exception as e:
         print(f"Error reading state file: {e}")
         level = -1
