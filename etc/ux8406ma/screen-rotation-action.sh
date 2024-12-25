@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /etc/ux8406ma/.screen_functions.sh
+source /etc/ux8406ma/_screen_functions.sh
 
 # Handle screen orientation changes
 handle_orientation() {

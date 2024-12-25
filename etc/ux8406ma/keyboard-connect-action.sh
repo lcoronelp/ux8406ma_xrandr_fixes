@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /etc/ux8406ma/.screen_functions.sh
+source /etc/ux8406ma/_screen_functions.sh
 
 # Stop the rotation monitor service
 systemctl stop ux8406ma-screen-rotation-monitor
