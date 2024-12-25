@@ -107,3 +107,21 @@ restore_brightness() {
     # Log the successful restoration of brightness
     /etc/ux8406ma/log-manager.sh "Successfully restored brightness to $current_brightness"
 }
+
+convert_orientation() {
+    local orientation=$1
+    case $orientation in
+        "bottom-up")
+            echo "inverted"
+            ;;
+        "left-up")
+            echo "left"
+            ;;
+        "right-up")
+            echo "right"
+            ;;
+        *)
+            echo "$orientation"
+            ;;
+    esac
+}

@@ -27,15 +27,15 @@ handle_orientation() {
             DISPLAY=:0 xrandr --output eDP-1 --rotate normal --output eDP-2 --rotate normal --below eDP-1 &>/dev/null
             /etc/ux8406ma/log-manager.sh "Rotated to normal position"
             ;;
-        "bottom-up")
+        "inverted")
             DISPLAY=:0 xrandr --output eDP-1 --rotate inverted --output eDP-2 --rotate inverted --above eDP-1 &>/dev/null
             /etc/ux8406ma/log-manager.sh "Rotated to inverted position"
             ;;
-        "left-up")
+        "left")
             DISPLAY=:0 xrandr --output eDP-1 --rotate left --output eDP-2 --rotate left --left-of eDP-1 &>/dev/null
             /etc/ux8406ma/log-manager.sh "Rotated to left position"
             ;;
-        "right-up")
+        "right")
             DISPLAY=:0 xrandr --output eDP-1 --rotate right --output eDP-2 --rotate right --right-of eDP-1 &>/dev/null
             /etc/ux8406ma/log-manager.sh "Rotated to right position"
             ;;
@@ -45,12 +45,15 @@ handle_orientation() {
             ;;
     esac
 
+    /etc/ux8406ma/log-manager.sh "$edp1_current_brightness $orientation"
     restore_brightness "eDP-1" "$edp1_current_brightness" "orientation" "eDP-1" "$orientation"
 }
+
 
 monitor-sensor | while read -r line; do
     if [[ $line == *"Accelerometer orientation changed:"* ]]; then
         orientation=$(echo "$line" | awk -F': ' '{print $2}')
-        handle_orientation "$orientation"
+        transformed_orientation=$(convert_orientation "$orientation")
+        handle_orientation "$transformed_orientation"
     fi
 done
