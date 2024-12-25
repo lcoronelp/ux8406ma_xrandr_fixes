@@ -37,8 +37,8 @@ handle_orientation() {
             ;;
         "left")
             DISPLAY=:0 xrandr --output eDP-1 --rotate left --output eDP-2 --rotate left --left-of eDP-1 &>/dev/null
-            touch_transform "$TOUCH1" "$SCREEN1" "$MATRIX_LEFT_LEFT_HALF"
-            touch_transform "$TOUCH2" "$SCREEN2" "$MATRIX_LEFT_RIGHT_HALF"
+            touch_transform "$TOUCH1" "$SCREEN1" "$MATRIX_LEFT_RIGHT_HALF"
+            touch_transform "$TOUCH2" "$SCREEN2" "$MATRIX_LEFT_LEFT_HALF"
             /etc/ux8406ma/log-manager.sh "Rotated to left position"
             ;;
         "right")
