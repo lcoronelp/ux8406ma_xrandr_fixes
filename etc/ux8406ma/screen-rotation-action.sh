@@ -1,27 +1,21 @@
 #!/bin/bash
 
-# Check if eDP-2 is powered on
-is_edp2_on() {
-    DISPLAY=:0 xrandr | grep -q "eDP-2 connected [0-9]"
-    return $?
-}
+source /etc/ux8406ma/.screen_functions.sh
 
-# Get the current orientation of a screen
-get_orientation() {
-    local screen=$1
-    DISPLAY=:0 xrandr | grep "$screen connected" | grep -o "normal\|inverted\|left\|right" | head -n 1
-}
-
+# Handle screen orientation changes
 handle_orientation() {
     local orientation=$1
+    local current_orientation
+    local edp1_current_brightness
 
     if ! is_edp2_on; then
         systemctl stop ux8406ma-screen-rotation-monitor.service
-        /etc/ux8406ma/log-manager.sh "No rotation applied: eDP-2 is Off"
+        /etc/ux8406ma/log-manager.sh "No rotation applied: eDP-2 is off"
         exit 0
     fi
 
-    local current_orientation=$(get_orientation "eDP-1")
+    current_orientation=$(get_orientation "eDP-1")
+    edp1_current_brightness=$(get_current_brightness "eDP-1")
 
     if [[ $current_orientation == "$orientation" ]]; then
         /etc/ux8406ma/log-manager.sh "No rotation applied: eDP-1 is already $orientation"
@@ -49,6 +43,8 @@ handle_orientation() {
             echo "$(date '+%Y/%m/%d %H:%M:%S') Unknown orientation: $orientation"
             ;;
     esac
+
+    restore_brightness "eDP-1" "$edp1_current_brightness" "orientation" "eDP-1" "$orientation"
 }
 
 monitor-sensor | while read -r line; do
