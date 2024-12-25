@@ -2,9 +2,9 @@
 
 # Input variables
 DIRECTION=$1 # "up" to increase brightness, "down" to decrease brightness
-INCREMENT=0.15 # Brightness adjustment step
-MIN_BRIGHTNESS=0.15 # Minimum brightness allowed
-MAX_BRIGHTNESS=1.15 # Maximum brightness allowed
+INCREMENT=0.10 # Brightness adjustment step
+MIN_BRIGHTNESS=0.20 # Minimum brightness allowed
+MAX_BRIGHTNESS=1.10 # Maximum brightness allowed
 MONITORS=("eDP-1" "eDP-2") # List of monitors to adjust brightness for
 
 # Function to calculate the new brightness
