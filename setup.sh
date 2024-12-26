@@ -166,6 +166,28 @@ reload_services() {
     echo "Services reloaded successfully."
 }
 
+# Create the shortcuts
+create_shortcuts() {
+    echo "Creating shortcuts..."
+
+    SHORTCUTS=(
+        "<Super>F1:/etc/ux8406ma/speaker-volume.sh mute"
+        "<Super>F2:/etc/ux8406ma/speaker-volume.sh down"
+        "<Super>F3:/etc/ux8406ma/speaker-volume.sh up"
+        "<Super>F4:python3 /etc/ux8406ma/keyboard-backlight.py"
+        "<Super>F5:/etc/ux8406ma/screen-brightness-change-action.sh down"
+        "<Super>F6:/etc/ux8406ma/screen-brightness-change-action.sh up"
+        "<Super>F7:/etc/ux8406ma/screen-brightness-change-action.sh reset"
+    )
+    for shortcut in "${SHORTCUTS[@]}"; do
+        KEYBINDING="${shortcut%%:*}" # Extraer la tecla
+        COMMAND="${shortcut##*:}"    # Extraer el comando
+        xfconf-query -c $XFCE_CHANNEL -p "$CUSTOM_PATH/$KEYBINDING" -r 2>/dev/null
+        xfconf-query -c $XFCE_CHANNEL -p "$CUSTOM_PATH/$KEYBINDING" -s "$COMMAND" --create -t string
+    done
+    echo "Shortcuts created succesfully."
+}
+
 # Main execution flow
 main() {
     ensure_execution_directory
@@ -179,6 +201,8 @@ main() {
     install_files
     echo ""
     reload_services
+    echo ""
+    create_shortcuts
     echo ""
     echo "Installation completed successfully."
 }

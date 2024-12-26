@@ -4,3 +4,4 @@
 ## TODO
 - Mic Mute action
 - Mic Mute led service
+- Hibernation
