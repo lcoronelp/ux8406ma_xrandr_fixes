@@ -80,55 +80,30 @@ clean_previous_configurations() {
 }
 
 # Detect and configure the user's shell
-configure_shell() {
-    echo "Detecting and configuring shell..."
+configure_xhost_xprofile() {
+    echo "Configuring xhost in .xprofile..."
 
-    # Generate available shells from /etc/shells and remove duplicates
-    local available_shells
-    available_shells=($(grep -Eo '/[^ ]+$' /etc/shells | xargs -n1 basename | sort -u))
+    # Define the .xprofile file
+    local xprofile_file="$HOME/.xprofile"
 
-    # Mark the current shell with (current)
-    for i in "${!available_shells[@]}"; do
-        if [ "${available_shells[$i]}" = "$USER_SHELL" ]; then
-            available_shells[$i]="${available_shells[$i]} (current)"
-        fi
-    done
-
-    PS3="Choose your shell option (or enter the number): "
-
-    # Use select to allow the user to choose a shell
-    echo "Please select the shell to configure xhost from the following options:"
-
-    while true; do
-        select OPTION in "${available_shells[@]}" "Other"; do
-            OPTION_CLEANED="${OPTION% (current)}"
-
-            if [[ " ${available_shells[@]} " =~ " ${OPTION_CLEANED} " ]]; then
-                SELECTED_SHELL="$OPTION_CLEANED"
-                break 2
-            elif [[ "$OPTION_CLEANED" == "Other" ]]; then
-                read -rp "Enter your shell (e.g., fish, ksh, etc.): " SELECTED_SHELL
-                break 2
-            else
-                echo "Invalid option, please choose a valid option:"
-                break
-            fi
-        done
-    done
-
-    SELECTED_SHELL=${SELECTED_SHELL:-$USER_SHELL}
-    
-    # Configure xhost in shell initialization file
-    echo ""
-    echo "Configuring xhost for $SELECTED_SHELL..."
-    local shell_rc="$HOME/.${SELECTED_SHELL}rc"
-
-    if ! grep -q "xhost +SI:localuser:root" "$shell_rc" 2>/dev/null; then
-        echo "Adding xhost permissions to $shell_rc..."
-        echo "xhost +SI:localuser:root" >> "$shell_rc"
-    else
-        echo "xhost permissions already exist in $shell_rc."
+    # Check if the file exists, if not, create it
+    if [ ! -f "$xprofile_file" ]; then
+        echo "Creating .xprofile file..."
+        touch "$xprofile_file"
     fi
+
+    # Ensure the file has execution permissions
+    chmod +x "$xprofile_file"
+
+    # Check if the xhost command is already in the file
+    if ! grep -q "DISPLAY=:0 xhost +SI:localuser:root" "$xprofile_file" 2>/dev/null; then
+        echo "Adding xhost permissions to .xprofile..."
+        echo "DISPLAY=:0 xhost +SI:localuser:root" >> "$xprofile_file"
+    else
+        echo "xhost permissions already exist in .xprofile."
+    fi
+
+    echo "Configuration complete. The .xprofile file has been updated."
 }
 
 # Install necessary files
@@ -196,7 +171,7 @@ main() {
     echo ""
     clean_previous_configurations
     echo ""
-    configure_shell
+    configure_xhost_xprofile
     echo ""
     install_files
     echo ""
