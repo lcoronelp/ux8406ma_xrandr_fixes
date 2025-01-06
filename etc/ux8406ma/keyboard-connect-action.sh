@@ -10,7 +10,11 @@ edp1_current_brightness=$(get_current_brightness "eDP-1")
 # Turn Off eDP-2 and rotate eDP-1 to normal
 DISPLAY=:0 xrandr --output eDP-1 --rotate normal --output eDP-2 --off
 touch_transform "$TOUCH1" "$SCREEN1" "$MATRIX_FULL_SCREEN"
+touch_transform "$TOUCH1PEN" "$SCREEN1" "$MATRIX_FULL_SCREEN"
+touch_transform "$TOUCH1ERASER" "$SCREEN1" "$MATRIX_FULL_SCREEN"
 touch_transform "$TOUCH2" "$SCREEN_NONE"
+touch_transform "$TOUCH2PEN" "$SCREEN_NONE"
+touch_transform "$TOUCH2ERASER" "$SCREEN_NONE"
 
 restore_brightness "eDP-1" "$edp1_current_brightness" "status" "off"
 
